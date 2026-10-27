@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <title>Socket.IO Test</title>
+
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+</head>
+
+
+<body>
+
+    <h1>Socket.IO Test</h1>
+
+
+    <!-- ========================= -->
+    <!-- Connection -->
+    <!-- ========================= -->
+
+    <input
+        id="token"
+        placeholder="Paste JWT token"
+        style="width: 500px;"
+    >
+
+    <button onclick="connectSocket()">
+        Connect
+    </button>
+
+
+    <hr>
+
+
+    <!-- ========================= -->
+    <!-- Room -->
+    <!-- ========================= -->
+
+    <input
+        id="roomId"
+        placeholder="Room ID"
+    >
+
+    <button onclick="joinRoom()">
+        Join Room
+    </button>
+
+
+    <br><br>
+
+
+    <!-- ========================= -->
+    <!-- Receiver -->
+    <!-- ========================= -->
+
+    <input
+        id="receiverId"
+        placeholder="Receiver ID"
+    >
+
+    <button onclick="sendDirectMessage()">
+        Send Direct Message
+    </button>
+
+
+    <br><br>
+
+
+    <!-- ========================= -->
+    <!-- Message -->
+    <!-- ========================= -->
+
+    <input
+        id="message"
+        placeholder="Message"
+    >
+
+    <button onclick="sendMessage()">
+        Send Message
+    </button>
+
+
+    <br><br>
+
+
+    <!-- ========================= -->
+    <!-- Typing -->
+    <!-- ========================= -->
+
+    <button onclick="startTyping()">
+        Start Typing
+    </button>
+
+    <button onclick="stopTyping()">
+        Stop Typing
+    </button>
+
+
+    <hr>
+
+
+    <!-- ========================= -->
+    <!-- Events -->
+    <!-- ========================= -->
+
+    <h3>Events</h3>
+
+    <pre id="output"></pre>
+
+
+    <script>
+
+        let socket;
+
+
+        // =========================
+        // Log Events
+        // =========================
+
+        function log(message) {
+
+            const output =
+                document.getElementById('output');
+
+
+            output.textContent +=
+                JSON.stringify(
+                    message,
+                    null,
+                    2
+                ) + '\n\n';
+        }
+
+
+        // =========================
+        // Connect
+        // =========================
+
+        function connectSocket() {
+
+            const token =
+                document
+                    .getElementById('token')
+                    .value
+                    .trim();
+
+
+            if (!token) {
+
+                alert(
+                    'Paste JWT token first'
+                );
+
+                return;
+            }
+
+
+            socket = io(
+                'http://localhost:3000',
+                {
+                    query: {
+                        token: token
+                    }
+                }
+            );
+
+
+            // Connected
+            socket.on('connect', () => {
+
+                log({
+                    event: 'connect',
+                    socketId: socket.id
+                });
+
+            });
+
+
+            // Online users
+            socket.on(
+                'online-users',
+                (data) => {
+
+                    log({
+                        event: 'online-users',
+                        data: data
+                    });
+
+                }
+            );
+
+
+            // Offline users
+            socket.on(
+                'offline-users',
+                (data) => {
+
+                    log({
+                        event: 'offline-users',
+                        data: data
+                    });
+
+                }
+            );
+
+
+            // Joined room
+            socket.on(
+                'joined-room',
+                (data) => {
+
+                    log({
+                        event: 'joined-room',
+                        data: data
+                    });
+
+                }
+            );
+
+
+            // New room message
+            socket.on(
+                'new-message',
+                (data) => {
+
+                    log({
+                        event: 'new-message',
+                        data: data
+                    });
+
+                }
+            );
+
+
+            // Typing
+            socket.on(
+                'user-typing',
+                (data) => {
+
+                    log({
+                        event: 'user-typing',
+                        data: data
+                    });
+
+                }
+            );
+
+
+            // Stop typing
+            socket.on(
+                'user-stopped-typing',
+                (data) => {
+
+                    log({
+                        event: 'user-stopped-typing',
+                        data: data
+                    });
+
+                }
+            );
+
+
+            // Direct message received
+            socket.on(
+                'direct-message',
+                (data) => {
+
+                    log({
+                        event: 'direct-message',
+                        data: data
+                    });
+
+                }
+            );
+
+
+            // Direct message sent confirmation
+            socket.on(
+                'direct-message-sent',
+                (data) => {
+
+                    log({
+                        event: 'direct-message-sent',
+                        data: data
+                    });
+
+                }
+            );
+
+
+            // Error
+            socket.on(
+                'error',
+                (data) => {
+
+                    log({
+                        event: 'error',
+                        data: data
+                    });
+
+                }
+            );
+
+
+            // Disconnect
+            socket.on(
+                'disconnect',
+                (reason) => {
+
+                    log({
+                        event: 'disconnect',
+                        reason: reason
+                    });
+
+                }
+            );
+        }
+
+
+        // =========================
+        // Join Room
+        // =========================
+
+        function joinRoom() {
+
+            if (!socket) {
+
+                alert(
+                    'Connect first'
+                );
+
+                return;
+            }
+
+
+            const roomId =
+                document
+                    .getElementById('roomId')
+                    .value
+                    .trim();
+
+
+            if (!roomId) {
+
+                alert(
+                    'Enter Room ID'
+                );
+
+                return;
+            }
+
+
+            socket.emit(
+                'join-room',
+                {
+                    roomId: roomId
+                }
+            );
+        }
+
+
+        // =========================
+        // Send Room Message
+        // =========================
+
+        function sendMessage() {
+
+            if (!socket) {
+
+                alert(
+                    'Connect first'
+                );
+
+                return;
+            }
+
+
+            const roomId =
+                document
+                    .getElementById('roomId')
+                    .value
+                    .trim();
+
+
+            const content =
+                document
+                    .getElementById('message')
+                    .value
+                    .trim();
+
+
+            if (!roomId || !content) {
+
+                alert(
+                    'Room ID and message are required'
+                );
+
+                return;
+            }
+
+
+            socket.emit(
+                'send-message',
+                {
+                    roomId: roomId,
+                    content: content
+                }
+            );
+        }
+
+
+        // =========================
+        // Start Typing
+        // =========================
+
+        function startTyping() {
+
+            if (!socket) {
+
+                alert(
+                    'Connect first'
+                );
+
+                return;
+            }
+
+
+            const roomId =
+                document
+                    .getElementById('roomId')
+                    .value
+                    .trim();
+
+
+            socket.emit(
+                'typing-start',
+                {
+                    roomId: roomId
+                }
+            );
+        }
+
+
+        // =========================
+        // Stop Typing
+        // =========================
+
+        function stopTyping() {
+
+            if (!socket) {
+
+                alert(
+                    'Connect first'
+                );
+
+                return;
+            }
+
+
+            const roomId =
+                document
+                    .getElementById('roomId')
+                    .value
+                    .trim();
+
+
+            socket.emit(
+                'typing-stop',
+                {
+                    roomId: roomId
+                }
+            );
+        }
+
+
+        // =========================
+        // Direct Message
+        // =========================
+
+        function sendDirectMessage() {
+
+            if (!socket) {
+
+                alert(
+                    'Connect first'
+                );
+
+                return;
+            }
+
+
+            const roomId =
+                document
+                    .getElementById('roomId')
+                    .value
+                    .trim();
+
+
+            const receiverId =
+                document
+                    .getElementById('receiverId')
+                    .value
+                    .trim();
+
+
+            const content =
+                document
+                    .getElementById('message')
+                    .value
+                    .trim();
+
+
+            if (
+                !roomId ||
+                !receiverId ||
+                !content
+            ) {
+
+                alert(
+                    'Room ID, Receiver ID and message are required'
+                );
+
+                return;
+            }
+
+
+            socket.emit(
+                'direct-message',
+                {
+                    roomId: roomId,
+                    receiverId: receiverId,
+                    content: content
+                }
+            );
+        }
+
+    </script>
+
+</body>
+
+</html>
